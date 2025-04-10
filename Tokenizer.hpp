@@ -34,8 +34,8 @@ class Tokenizer
 		// Tokenizer();
 		// ~Tokenizer();
 
-		void ft_tokenize(std::string s1);
-		void ft_filled_token(std::string s1);
+		int ft_tokenize(std::string s1);
+		void ft_push_token(std::string s1);
 	
 };
 
