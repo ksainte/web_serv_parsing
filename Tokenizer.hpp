@@ -36,6 +36,8 @@ class Tokenizer
 
 		int ft_tokenize(std::string s1);
 		void ft_push_token(std::string s1);
+		int ft_check_basic_syntax(void);
+		int ft_check_directives(void);
 	
 };
 

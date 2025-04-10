@@ -5,14 +5,24 @@
 #define ARGS 0
 #define INPUT 1
 #define SYNTAX 2
+#define BRACKETS 3 
+#define ORDER 4
+#define BAD_SEMICOLONS 5
+#define BAD_LOCATION 6
 
 int printError(int err)
 {
     if (err == INPUT)
-        std::cerr << "Error: could not open input file" << std::endl;
-    if (err == SYNTAX)
-        std::cerr << "Error: Syntax is wrong!" << std::endl;
-    return (1);
+        std::cerr << "Error: could not open input file\n";
+    if (err == BAD_SEMICOLONS)
+        std::cerr << "\nSyntax Error: Misuse of Semicolons!\n";
+    if (err == BRACKETS)
+        std::cerr << "\nSyntax Error: Misuse of Brackets!\n";
+    if (err == ORDER)
+        std::cerr << "\nSyntax Error: Wrong Token Order!\n";
+    if (err == BAD_LOCATION)
+        std::cerr << "\nSyntax Error: Wrong Token after Location!\n";
+    return (0);
 }
 
 std::string	ft_get_value(std::string s1)
@@ -66,20 +76,74 @@ void Tokenizer::ft_push_token(std::string s1)
 
 }
 
+int ft_check_brackets(t_type type, int &left_brackets)
+{       
+    if (type == LBRACE)
+    {
+        left_brackets++;
+        if (left_brackets > 2)
+            return (0);
+    }
+    if (type == RBRACE)
+    {
+        left_brackets--;
+        if (left_brackets < 0)
+            return (0);
+    }
+    return (1);
+}
 
+int Tokenizer::ft_check_basic_syntax(void)
+{
+    std::list<t_node>::iterator it;
+    t_type t1;
+    t_type t2;
+    int left_brackets;
+
+    left_brackets = 0;
+    std::cout << "mylist contains:\n";
+    it = _tokens_list.begin();
+    if ((*it).type != SERVER)
+        return (printError(ORDER));
+    while (it != _tokens_list.end())
+    {
+        std::cout << "type is " << (*it).type;
+        std::cout << "\nvalue is " << (*it).value;
+        t2 = (*it).type;
+        if (t2 == LBRACE && !(ft_check_brackets(t2, left_brackets)))
+            return (printError(BRACKETS));
+        if (t2 == RBRACE && !(ft_check_brackets(t2, left_brackets)))
+            return (printError(BRACKETS));
+        if (it != _tokens_list.begin())
+        {
+            it--;
+            std::cout << "\nThe previous element is " << (*it).type << '\n';
+            t1 = (*it).type;
+            it++;
+            if (t1 == t2 && t1 == SEMICOLON)
+                return (printError(BAD_SEMICOLONS));
+            if ((t1 == SEMICOLON && t2 == LBRACE) || ((t1 == RBRACE || t1 == LBRACE) && t2 == SEMICOLON))
+                return (printError(BAD_SEMICOLONS));
+            if (t1 == LOCATION && t2 != STRING)
+                return (printError(BAD_LOCATION));
+        }
+        std::cout << "\nnext token:\n";
+        it++;
+        // std::cout << "left brackets are " <<left_brackets << "\n";
+    }
+    std::cout << "----------------";
+    if (left_brackets == 0)
+        return (1);
+    // std::cout << "left brackets are" <<left_brackets;
+    return (printError(LBRACE));
+}
 
 int Tokenizer::ft_tokenize(const std::string s1)
 {
-    std::list<t_node>::iterator it;
     std::string temp;
-    t_type t1;
-    t_type t2;
-
 
     int i;
-    int list_len;
 
-    list_len = 0;
     i = 0;
     _len = 0;
 	while (s1[i])
@@ -96,28 +160,21 @@ int Tokenizer::ft_tokenize(const std::string s1)
 		i = i + _len;
 		_len = 0;
 	}
-    std::cout << "mylist contains:\n";
-    it = _tokens_list.begin();
-    while (it != _tokens_list.end())
-    {
-        std::cout << "type is " << (*it).type;
-        std::cout << "\nvalue is " << (*it).value;
-        if (it != _tokens_list.begin())
-        {
-            it--;
-            std::cout << "\nThe previous element is " << (*it).type << '\n';
-            t1 = (*it).type;
-            it++;
-            t2 = (*it).type;
-            if (t1 == t2 && t1 == SEMICOLON)
-                return (0);
-        }
-        std::cout << "\nnext token:\n";
-        it++;
-    }
-    std::cout << "----------------";
     return (1);
 }
+//compare les strings qui sont que apres un SC, LB ou RB!
+// int Tokenizer::ft_check_directives(void)
+// {
+//     std::list<t_node>::iterator it;
+
+//     it = _tokens_list.begin();
+//     while (it != _tokens_list.end())
+//     {
+
+//         it++;
+//     }
+
+// }
 
 int main(int argc, char **argv)
 {
@@ -134,12 +191,20 @@ int main(int argc, char **argv)
         return (printError(INPUT));
 
     while (getline(fileIn, buff))
+        tokenizer.ft_tokenize(buff + '\n');
+
+    if (!(tokenizer.ft_check_basic_syntax()))
     {
-        if (!(tokenizer.ft_tokenize(buff + '\n')))
-        {
-            return (printError(SYNTAX));
-        }
+        fileIn.close();
+        return (1);
     }
+    // if (!(tokenizer.ft_check_directives()))
+    // {
+    //     fileIn.close();
+    //     return (1);
+    // }
+    else
+        std::cout << "\nok!\n";
 
     fileIn.close();
 
