@@ -9,6 +9,7 @@ int main(int argc, char **argv)
     catch(std::exception &error)
     {
         return (1);
+        // std::cerr << error.what() << "\n";
     }
     return (0);
 }
