@@ -13,6 +13,7 @@
 #define BAD_LOCATION 6
 #define BAD_DIRECTIVE 7
 #define DIRECTIVE_INCOMPLETE 8
+#define NO_LISTEN 9
 
 typedef enum s_token_type
 {

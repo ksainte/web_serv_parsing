@@ -16,6 +16,8 @@ int Tokenizer::printError(int err)
         std::cerr << "\nSyntax Error: String is not a valid Directive!\n";
     if (err == DIRECTIVE_INCOMPLETE)
         std::cerr << "\nSyntax Error: The Directive is Incomplete!\n";
+    if (err == NO_LISTEN)
+        std::cerr << "\nSyntax Error: There is no Listen directive in one of the Server Block(s)!\n";
     return (0);
 }
 
@@ -97,8 +99,6 @@ int Tokenizer::ft_check_basic_syntax(void)
     left_brackets = 0;
     std::cout << "mylist contains:\n";
     it = _tokens_list.begin();
-    // if ((*it).type != SERVER)
-    //     return (printError(ORDER));
     while (it != _tokens_list.end())
     {
         std::cout << "type is " << (*it).type;
@@ -204,16 +204,18 @@ int Tokenizer::ft_compare_with_table(std::string value, std::list<t_node>::itera
 int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
 {
     int flag_location_block;
+    int flag_valid_server_block;
     t_type t1;
     t_type t2;
 
     flag_location_block = 0;
+    flag_valid_server_block = 0;
     if (it != _tokens_list.end())
     {
         if ((*it).type != SERVER)
             return (printError(ORDER));
         it++;
-        if (it != _tokens_list.end() && (*it).type != LBRACE)
+        if (it == _tokens_list.end() || (*it).type != LBRACE)
             return (printError(ORDER));
         it++;
     }
@@ -222,25 +224,29 @@ int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
         std::cout << "\ntype is " << (*it).type;
         std::cout << "\nvalue is " << (*it).value;
         t2 = (*it).type;//current token
+        it--;
+        std::cout << "\nThe previous element is " << (*it).type << '\n';
+        t1 = (*it).type;//previous token
+        it++;
+        if (t2 != STRING && t1 == DIRECTIVE)
+            return (printError(DIRECTIVE_INCOMPLETE));  
+        if ((*it).value == "listen")//peut ne pas encore etre une directive
+            flag_valid_server_block = 1;
         if (t2 == LOCATION)
             flag_location_block = 1;
         if (flag_location_block == 1 && t2 == RBRACE)
             flag_location_block = 0;
         else if (flag_location_block == 0 && t2 == RBRACE)//end of first server block
         {
-            it++;//
+            if (!(flag_valid_server_block))
+                return (printError(NO_LISTEN));
+            it++;// passer au server suivant ou sur null si fin!
             std::cout << "\n-----------Check new server block---------\n";
             if (!(ft_check_directives(it)))
                 return (0);
             return (1);
         }
-        it--;
-        std::cout << "\nThe previous element is " << (*it).type << '\n';
-        t1 = (*it).type;//previous token
-        it++;
-        if (t2 != STRING && t1 == DIRECTIVE)
-            return (printError(DIRECTIVE_INCOMPLETE));
-        if (t2 == STRING && (t1 == SEMICOLON || t1 == LBRACE || t1 == RBRACE))//catch the directive
+        if (t2 == STRING && (t1 == SEMICOLON || t1 == LBRACE || t1 == RBRACE))//make a current string a directive
         {
             if (!(ft_compare_with_table((*it).value, it, flag_location_block)))
                 return (printError(BAD_DIRECTIVE));
