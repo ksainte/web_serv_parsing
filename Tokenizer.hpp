@@ -4,6 +4,15 @@
 #include <fstream>
 #include <string>
 #include <list>
+#define ARGS 0
+#define INPUT 1
+#define SYNTAX 2
+#define BRACKETS 3 
+#define ORDER 4
+#define BAD_SEMICOLONS 5
+#define BAD_LOCATION 6
+#define BAD_DIRECTIVE 7
+#define DIRECTIVE_INCOMPLETE 8
 
 typedef enum s_token_type
 {
@@ -29,10 +38,11 @@ class Tokenizer
 	private:
 		std::list<t_node> _tokens_list;
 		int				  _len;
+		int 			  printError(int err);
 
 	public:
-		// Tokenizer();
-		// ~Tokenizer();
+		Tokenizer(std::string file);
+		~Tokenizer();
 
 		int ft_tokenize(std::string s1);
 		void ft_push_token(std::string s1);
@@ -40,6 +50,7 @@ class Tokenizer
 		int ft_check_directives(std::list<t_node>::iterator &it);
 		int ft_check_server_blocks(void);
 		int ft_compare_with_table(std::string value, std::list<t_node>::iterator &it, int flag_location_block);
+		const std::list<t_node> &ft_get_token_list(void) const;
 	
 };
 
