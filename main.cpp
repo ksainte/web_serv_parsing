@@ -9,11 +9,13 @@
 #define ORDER 4
 #define BAD_SEMICOLONS 5
 #define BAD_LOCATION 6
+#define BAD_DIRECTIVE 7
+#define DIRECTIVE_INCOMPLETE 8
 
 int printError(int err)
 {
     if (err == INPUT)
-        std::cerr << "Error: could not open input file\n";
+        std::cerr << "\nError: could not open input file\n";
     if (err == BAD_SEMICOLONS)
         std::cerr << "\nSyntax Error: Misuse of Semicolons!\n";
     if (err == BRACKETS)
@@ -22,6 +24,10 @@ int printError(int err)
         std::cerr << "\nSyntax Error: Wrong Token Order!\n";
     if (err == BAD_LOCATION)
         std::cerr << "\nSyntax Error: Wrong Token after Location!\n";
+    if (err == BAD_DIRECTIVE)
+        std::cerr << "\nSyntax Error: String is not a valid Directive!\n";
+    if (err == DIRECTIVE_INCOMPLETE)
+        std::cerr << "\nSyntax Error: The Directive is Incomplete!\n";
     return (0);
 }
 
@@ -162,17 +168,101 @@ int Tokenizer::ft_tokenize(const std::string s1)
 	}
     return (1);
 }
+
+int Tokenizer::ft_compare_with_table(std::string value, std::list<t_node>::iterator &it, int flag_location_block)
+{
+    const std::string server_block[10] = {"listen", "host", "port", "server_name", "error_page", "client_max_body_size", "return", "root", "index", "autoindex"};
+    const std::string location_block[9] = {"error_page", "client_max_body_size", "method", "return", "root", "index", "autoindex", "cgi_pass", "cgi_params"};
+    int i;
+
+    i = 0;
+    if (flag_location_block == 0)
+    {
+        while (i < 10)
+        {
+            if (value == server_block[i])
+            {
+                std::cout << "Matched directive in server block!\n";
+                (*it).type = DIRECTIVE;
+                std::cout << "New type is " << (*it).type << "\n";
+                return (1);
+            }
+            i++;
+        }
+    }
+    else
+    {
+        while (i < 9)
+        {
+            if (value == location_block[i])
+            {
+                std::cout << "Matched directive in location block!\n";
+                (*it).type = DIRECTIVE;
+                std::cout << "New type is " << (*it).type << "\n";
+                return (1);
+            }
+            i++;
+        }
+    }
+    if (flag_location_block == 0)
+        std::cout << "\nSever block issue: " << (*it).value << "\n";
+    else
+        std::cout << "\nLocation block issue: " << (*it).value << "\n";
+    return (0);
+}
+
+
 //compare les strings qui sont que apres un SC, LB ou RB!
-// int Tokenizer::ft_check_directives(void)
+int Tokenizer::ft_check_directives(void)
+{
+    std::list<t_node>::iterator it;
+    int flag_location_block;
+    int flag_server_block;
+    t_type t1;
+    t_type t2;
+
+    flag_location_block = 0;
+    flag_server_block = 1;
+    it = _tokens_list.begin();
+    it++;//skip the server token
+    it++;//skip the LBRACE token->we are in the server block
+    while (it != _tokens_list.end())
+    {
+        std::cout << "\ntype is " << (*it).type;
+        std::cout << "\nvalue is " << (*it).value;
+        t2 = (*it).type;//current token
+        if (t2 == LOCATION)
+            flag_location_block = 1;
+        if (flag_location_block == 1 && t2 == RBRACE)
+            flag_location_block = 0;
+        // if (flag_location_block == 0 && t2 == RBRACE)
+        // {
+        //     it++;
+        //     flag_server_block = 0;
+        // }
+        it--;
+        std::cout << "\nThe previous element is " << (*it).type << '\n';
+        t1 = (*it).type;//previous token
+        it++;
+        if (t2 != STRING && t1 == DIRECTIVE)
+            return (printError(DIRECTIVE_INCOMPLETE));
+        if (t2 == STRING && (t1 == SEMICOLON || t1 == LBRACE || t1 == RBRACE))//catch the directive
+        {
+            if (!(ft_compare_with_table((*it).value, it, flag_location_block)))
+                return (printError(BAD_DIRECTIVE));
+        }
+        it++;
+    }
+    return (1);
+
+}
+
+// int Tokenizer::ft_check_server_blocks(void)
 // {
 //     std::list<t_node>::iterator it;
 
 //     it = _tokens_list.begin();
-//     while (it != _tokens_list.end())
-//     {
-
-//         it++;
-//     }
+//     ft_check_directives(it);
 
 // }
 
@@ -198,11 +288,12 @@ int main(int argc, char **argv)
         fileIn.close();
         return (1);
     }
-    // if (!(tokenizer.ft_check_directives()))
-    // {
-    //     fileIn.close();
-    //     return (1);
-    // }
+    std::cout << "DIRECTIVES-------------\n";
+    if (!(tokenizer.ft_check_directives()))
+    {
+        fileIn.close();
+        return (1);
+    }
     else
         std::cout << "\nok!\n";
 
