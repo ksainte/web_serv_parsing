@@ -109,8 +109,8 @@ int Tokenizer::ft_check_basic_syntax(void)
     left_brackets = 0;
     std::cout << "mylist contains:\n";
     it = _tokens_list.begin();
-    if ((*it).type != SERVER)
-        return (printError(ORDER));
+    // if ((*it).type != SERVER)
+    //     return (printError(ORDER));
     while (it != _tokens_list.end())
     {
         std::cout << "type is " << (*it).type;
@@ -213,19 +213,22 @@ int Tokenizer::ft_compare_with_table(std::string value, std::list<t_node>::itera
 
 
 //compare les strings qui sont que apres un SC, LB ou RB!
-int Tokenizer::ft_check_directives(void)
+int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
 {
-    std::list<t_node>::iterator it;
     int flag_location_block;
-    int flag_server_block;
     t_type t1;
     t_type t2;
 
     flag_location_block = 0;
-    flag_server_block = 1;
-    it = _tokens_list.begin();
-    it++;//skip the server token
-    it++;//skip the LBRACE token->we are in the server block
+    if (it != _tokens_list.end())
+    {
+        if ((*it).type != SERVER)
+            return (printError(ORDER));
+        it++;
+        if (it != _tokens_list.end() && (*it).type != LBRACE)
+            return (printError(ORDER));
+        it++;
+    }
     while (it != _tokens_list.end())
     {
         std::cout << "\ntype is " << (*it).type;
@@ -235,11 +238,14 @@ int Tokenizer::ft_check_directives(void)
             flag_location_block = 1;
         if (flag_location_block == 1 && t2 == RBRACE)
             flag_location_block = 0;
-        // if (flag_location_block == 0 && t2 == RBRACE)
-        // {
-        //     it++;
-        //     flag_server_block = 0;
-        // }
+        else if (flag_location_block == 0 && t2 == RBRACE)//end of first server block
+        {
+            it++;//
+            std::cout << "\n-----------Check new server block---------\n";
+            if (!(ft_check_directives(it)))
+                return (0);
+            return (1);
+        }
         it--;
         std::cout << "\nThe previous element is " << (*it).type << '\n';
         t1 = (*it).type;//previous token
@@ -257,14 +263,15 @@ int Tokenizer::ft_check_directives(void)
 
 }
 
-// int Tokenizer::ft_check_server_blocks(void)
-// {
-//     std::list<t_node>::iterator it;
+int Tokenizer::ft_check_server_blocks(void)
+{
+    std::list<t_node>::iterator it;
 
-//     it = _tokens_list.begin();
-//     ft_check_directives(it);
-
-// }
+    it = _tokens_list.begin();
+    if (!(ft_check_directives(it)))
+        return (0);
+    return (1);
+}
 
 int main(int argc, char **argv)
 {
@@ -289,7 +296,7 @@ int main(int argc, char **argv)
         return (1);
     }
     std::cout << "DIRECTIVES-------------\n";
-    if (!(tokenizer.ft_check_directives()))
+    if (!(tokenizer.ft_check_server_blocks()))
     {
         fileIn.close();
         return (1);

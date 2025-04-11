@@ -37,7 +37,7 @@ class Tokenizer
 		int ft_tokenize(std::string s1);
 		void ft_push_token(std::string s1);
 		int ft_check_basic_syntax(void);
-		int ft_check_directives(void);
+		int ft_check_directives(std::list<t_node>::iterator &it);
 		int ft_check_server_blocks(void);
 		int ft_compare_with_table(std::string value, std::list<t_node>::iterator &it, int flag_location_block);
 	
