@@ -15,6 +15,10 @@
 #define DIRECTIVE_INCOMPLETE 8
 #define NO_LISTEN 9
 #define NOT_SERVER 10
+#define NOT_STRING 11
+#define ONLY_ONE 12
+#define ONLY_TWO 13
+#define NO_STRING 14
 
 typedef enum s_token_type
 {
@@ -52,6 +56,7 @@ class Tokenizer
 		int ft_check_directives(std::list<t_node>::iterator &it);
 		int ft_check_server_blocks(void);
 		int ft_compare_with_table(std::string value, std::list<t_node>::iterator &it, int flag_location_block);
+		int ft_valid_values_after_directive(std::list<t_node>::iterator it, std::string t1_value);
 		const std::list<t_node> &ft_get_token_list(void) const;
 	
 };

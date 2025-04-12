@@ -20,6 +20,14 @@ int Tokenizer::printError(int err)
         std::cerr << "\nSyntax Error: There is no Listen directive in one of the Server Block(s)!\n";
     if (err == NOT_SERVER)
         std::cerr << "\nSyntax Error: A Server Block must start with server Header!\n";
+    if (err == NOT_STRING)
+        std::cerr << "\nSyntax Error: A Directive can only contain Strings!\n";
+    if (err == ONLY_ONE)
+        std::cerr << "\nSyntax Error: This Directive can only hold ONE STRING!\n";
+    if (err == ONLY_TWO)
+        std::cerr << "\nSyntax Error: This Directive can only hold TWO STRINGS!\n";
+    if (err == NO_STRING)
+        std::cerr << "\nSyntax Error: This Directive must as least hold ONE STRING!\n";
     return (0);
 }
 
@@ -201,6 +209,71 @@ int Tokenizer::ft_compare_with_table(std::string value, std::list<t_node>::itera
     return (0);
 }
 
+int Tokenizer::ft_valid_values_after_directive(std::list<t_node>::iterator it, std::string t1_value)
+{
+    const std::string one_string[7] = {"listen", "host", "port", "client_max_body_size", "root", "autoindex", "cgi_pass"};
+    const std::string two_strings[1] = {"cgi_params"};
+    int i;
+    int string_number;
+
+    i = 0;
+    string_number = 0;
+    while (i < 7)
+    {
+        if (t1_value == one_string[i])
+        {
+            while ((*it).type != SEMICOLON)
+            {
+                if ((*it).type == STRING)
+                {
+                    string_number++;
+                }
+                else//is not a string! par exemple location ou server ou autre
+                    return (printError(NOT_STRING));//what is between directive and semicolon is not a string
+                it++;
+            }
+            if (string_number != 1)
+                return (printError(ONLY_ONE));
+            return (1);
+        }
+        i++;
+    }
+    i = 0;
+    while (i < 1)
+    {
+        if (t1_value == two_strings[i])
+        {
+            while ((*it).type != SEMICOLON)
+            {
+                if ((*it).type == STRING)
+                {
+                    string_number++;
+                }
+                else
+                    return (printError(NOT_STRING));//what is between directive and semicolon is not a string
+                it++;
+            }
+            if (string_number != 2)
+                return (printError(ONLY_TWO));
+            return (1);
+        }
+        i++;
+    }
+    while ((*it).type != SEMICOLON)
+    {
+        if ((*it).type == STRING)
+        {
+            string_number++;
+        }
+        else//is not a string! par exemple location ou server ou autre
+            return (printError(NOT_STRING));//what is between directive and semicolon is not a string
+        it++;
+    }
+    if (string_number == 0)
+        return (printError(NO_STRING));
+    return (1);
+}
+
 
 //compare les strings qui sont que apres un SC, LB ou RB!
 int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
@@ -209,6 +282,7 @@ int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
     int flag_valid_server_block;
     t_type t1;
     t_type t2;
+    std::string t1_value;
 
     flag_location_block = 0;
     flag_valid_server_block = 0;
@@ -229,9 +303,13 @@ int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
         it--;
         std::cout << "\nThe previous element is " << (*it).type << '\n';
         t1 = (*it).type;//previous token
-        it++;
-        if (t2 != STRING && t1 == DIRECTIVE)
-            return (printError(DIRECTIVE_INCOMPLETE));  
+        t1_value = (*it).value;
+        it++;//current
+        if (t1 == DIRECTIVE)//we know its a string after a directive, but how many?
+        {
+            if (!(ft_valid_values_after_directive(it, t1_value)))
+                return (printError(DIRECTIVE_INCOMPLETE));
+        }
         if (t2 == STRING && (t1 == SEMICOLON || t1 == LBRACE || t1 == RBRACE))//make a current string a directive
         {
             if (!(ft_compare_with_table((*it).value, it, flag_location_block)))
@@ -239,6 +317,8 @@ int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
             if ((*it).value == "listen")
                 flag_valid_server_block = 1;
         }
+        // if (t2 == DIRECTIVE)//we know its a string after a directive, but how many?
+        //     ft_strings_after_directive(it);
         if (t2 == LOCATION)
             flag_location_block = 1;    
         if (flag_location_block == 1 && t2 == RBRACE)
