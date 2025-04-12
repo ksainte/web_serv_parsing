@@ -209,7 +209,7 @@ int Tokenizer::ft_compare_with_table(std::string value, std::list<t_node>::itera
     return (0);
 }
 
-int Tokenizer::ft_valid_values_after_directive(std::list<t_node>::iterator it, std::string t1_value)
+int Tokenizer::ft_valid_values_after_directive(std::list<t_node>::iterator &it, std::string t1_value)
 {
     const std::string one_string[7] = {"listen", "host", "port", "client_max_body_size", "root", "autoindex", "cgi_pass"};
     const std::string two_strings[1] = {"cgi_params"};
@@ -227,7 +227,7 @@ int Tokenizer::ft_valid_values_after_directive(std::list<t_node>::iterator it, s
                 if ((*it).type == STRING)
                 {
                     string_number++;
-                }
+                }//pas oublier que avec ca server et location passe pas!
                 else//is not a string! par exemple location ou server ou autre
                     return (printError(NOT_STRING));//what is between directive and semicolon is not a string
                 it++;
