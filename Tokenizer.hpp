@@ -19,6 +19,7 @@
 #define ONLY_ONE 12
 #define ONLY_TWO 13
 #define NO_STRING 14
+#define LOCATION_STRUCT 15
 
 typedef enum s_token_type
 {

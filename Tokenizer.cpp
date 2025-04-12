@@ -28,6 +28,8 @@ int Tokenizer::printError(int err)
         std::cerr << "\nSyntax Error: This Directive can only hold TWO STRINGS!\n";
     if (err == NO_STRING)
         std::cerr << "\nSyntax Error: This Directive must as least hold ONE STRING!\n";
+    if (err == LOCATION_STRUCT)
+        std::cerr << "\nSyntax Error: A Location can only be followed by One String!!\n";
     return (0);
 }
 
@@ -128,8 +130,8 @@ int Tokenizer::ft_check_basic_syntax(void)
                 return (printError(BAD_SEMICOLONS));
             if ((t1 == SEMICOLON && t2 == LBRACE) || ((t1 == RBRACE || t1 == LBRACE) && t2 == SEMICOLON))
                 return (printError(BAD_SEMICOLONS));
-            if (t1 == LOCATION && t2 != STRING)
-                return (printError(BAD_LOCATION));
+            // if (t1 == LOCATION && t2 != STRING)
+            //     return (printError(BAD_LOCATION));
         }
         std::cout << "\nnext token:\n";
         it++;
@@ -289,11 +291,11 @@ int Tokenizer::ft_is_location_valid(std::list<t_node>::iterator it)
             string_number++;
         }//pas oublier que avec ca server et location passe pas!
         else//is not a string! par exemple location ou server ou autre
-            return (printError(NOT_STRING));//what is between location and lbrace is not a string
+            return (printError(LOCATION_STRUCT));//what is between location and lbrace is not a string
         it++;
     }
     if (string_number != 1)
-        return (printError(ONLY_ONE));
+        return (printError(LOCATION_STRUCT));
     return (1);
 }
 
@@ -307,6 +309,7 @@ int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
     t_type t1;
     t_type t2;
     std::string t1_value;
+    std::string t2_value;
 
     flag_location_block = 0;
     flag_start_location_block = 0;
@@ -342,10 +345,17 @@ int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
             if ((*it).value == "listen")
                 flag_valid_server_block = 1;
         }
-        if (t1 == LOCATION)
+        if (t1 == LOCATION)//peux pas skip l interieur de location
         {
-            ft_is_location_valid(it);//it du current
-
+            if (!(ft_is_location_valid(it)))
+                return (0);
+            //it du current donc de la string
+            t2_value = (*it).value;
+            it--;//sur la location
+            (*it).value = t2_value;
+            std::cout << "Type :" << (*it).type << " Value :" << (*it).value;
+            it++;//back on the string
+            _tokens_list.erase(it);
             flag_location_block = 1;
         }
         if (flag_location_block == 1 && t2 == LBRACE)
