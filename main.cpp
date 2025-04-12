@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 //         root   /usr/local/nginx/html;
 //         index  index.html index.htm;
 //     }
-//}
+// }
 // server {
 //     listen 192.168.1.100:8080;
 //     server_name test.example another.domain;

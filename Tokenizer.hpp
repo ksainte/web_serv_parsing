@@ -57,6 +57,7 @@ class Tokenizer
 		int ft_check_server_blocks(void);
 		int ft_compare_with_table(std::string value, std::list<t_node>::iterator &it, int flag_location_block);
 		int ft_valid_values_after_directive(std::list<t_node>::iterator &it, std::string t1_value);
+		int ft_is_location_valid(std::list<t_node>::iterator it);
 		const std::list<t_node> &ft_get_token_list(void) const;
 	
 };

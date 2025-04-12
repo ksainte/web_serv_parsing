@@ -138,7 +138,6 @@ int Tokenizer::ft_check_basic_syntax(void)
     std::cout << "----------------";
     if (left_brackets == 0)
         return (1);
-    // std::cout << "left brackets are" <<left_brackets;
     return (printError(LBRACE));
 }
 
@@ -275,16 +274,42 @@ int Tokenizer::ft_valid_values_after_directive(std::list<t_node>::iterator &it, 
 }
 
 
+int Tokenizer::ft_is_location_valid(std::list<t_node>::iterator it)
+{
+    int i;
+    int string_number;
+
+    //it est sur location mtn
+    i = 0;
+    string_number = 0;
+    while ((*it).type != LBRACE)
+    {            
+        if ((*it).type == STRING)
+        {
+            string_number++;
+        }//pas oublier que avec ca server et location passe pas!
+        else//is not a string! par exemple location ou server ou autre
+            return (printError(NOT_STRING));//what is between location and lbrace is not a string
+        it++;
+    }
+    if (string_number != 1)
+        return (printError(ONLY_ONE));
+    return (1);
+}
+
+
 //compare les strings qui sont que apres un SC, LB ou RB!
 int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
 {
     int flag_location_block;
+    int flag_start_location_block;
     int flag_valid_server_block;
     t_type t1;
     t_type t2;
     std::string t1_value;
 
     flag_location_block = 0;
+    flag_start_location_block = 0;
     flag_valid_server_block = 0;
     if (it != _tokens_list.end())
     {
@@ -308,7 +333,7 @@ int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
         if (t1 == DIRECTIVE)//we know its a string after a directive, but how many?
         {
             if (!(ft_valid_values_after_directive(it, t1_value)))
-                return (printError(DIRECTIVE_INCOMPLETE));
+                return (0);
         }
         if (t2 == STRING && (t1 == SEMICOLON || t1 == LBRACE || t1 == RBRACE))//make a current string a directive
         {
@@ -317,11 +342,15 @@ int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
             if ((*it).value == "listen")
                 flag_valid_server_block = 1;
         }
-        // if (t2 == DIRECTIVE)//we know its a string after a directive, but how many?
-        //     ft_strings_after_directive(it);
-        if (t2 == LOCATION)
-            flag_location_block = 1;    
-        if (flag_location_block == 1 && t2 == RBRACE)
+        if (t1 == LOCATION)
+        {
+            ft_is_location_valid(it);//it du current
+
+            flag_location_block = 1;
+        }
+        if (flag_location_block == 1 && t2 == LBRACE)
+            flag_start_location_block = 1;        
+        if (flag_start_location_block == 1 && t2 == RBRACE)
             flag_location_block = 0;
         else if (flag_location_block == 0 && t2 == RBRACE)//end of first server block
         {
@@ -336,7 +365,6 @@ int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
         it++;
     }
     return (1);
-
 }
 
 int Tokenizer::ft_check_server_blocks(void)
