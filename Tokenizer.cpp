@@ -355,7 +355,7 @@ int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
             (*it).value = t2_value;
             std::cout << "Type :" << (*it).type << " Value :" << (*it).value;
             it++;//back on the string
-            _tokens_list.erase(it);
+            (*it).type = INVALID;//make this string invalid!
             flag_location_block = 1;
         }
         if (flag_location_block == 1 && t2 == LBRACE)
