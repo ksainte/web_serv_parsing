@@ -14,6 +14,7 @@
 #define BAD_DIRECTIVE 7
 #define DIRECTIVE_INCOMPLETE 8
 #define NO_LISTEN 9
+#define NOT_SERVER 10
 
 typedef enum s_token_type
 {

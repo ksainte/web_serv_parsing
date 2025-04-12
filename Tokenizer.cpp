@@ -18,6 +18,8 @@ int Tokenizer::printError(int err)
         std::cerr << "\nSyntax Error: The Directive is Incomplete!\n";
     if (err == NO_LISTEN)
         std::cerr << "\nSyntax Error: There is no Listen directive in one of the Server Block(s)!\n";
+    if (err == NOT_SERVER)
+        std::cerr << "\nSyntax Error: A Server Block must start with server Header!\n";
     return (0);
 }
 
@@ -213,13 +215,13 @@ int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
     if (it != _tokens_list.end())
     {
         if ((*it).type != SERVER)
-            return (printError(ORDER));
+            return (printError(NOT_SERVER));
         it++;
         if (it == _tokens_list.end() || (*it).type != LBRACE)
             return (printError(ORDER));
         it++;
     }
-    while (it != _tokens_list.end())
+    while (it != _tokens_list.end())//1 2 3 dir 4
     {
         std::cout << "\ntype is " << (*it).type;
         std::cout << "\nvalue is " << (*it).value;
@@ -230,10 +232,15 @@ int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
         it++;
         if (t2 != STRING && t1 == DIRECTIVE)
             return (printError(DIRECTIVE_INCOMPLETE));  
-        if ((*it).value == "listen")//peut ne pas encore etre une directive
-            flag_valid_server_block = 1;
+        if (t2 == STRING && (t1 == SEMICOLON || t1 == LBRACE || t1 == RBRACE))//make a current string a directive
+        {
+            if (!(ft_compare_with_table((*it).value, it, flag_location_block)))
+                return (printError(BAD_DIRECTIVE));
+            if ((*it).value == "listen")
+                flag_valid_server_block = 1;
+        }
         if (t2 == LOCATION)
-            flag_location_block = 1;
+            flag_location_block = 1;    
         if (flag_location_block == 1 && t2 == RBRACE)
             flag_location_block = 0;
         else if (flag_location_block == 0 && t2 == RBRACE)//end of first server block
@@ -245,11 +252,6 @@ int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
             if (!(ft_check_directives(it)))
                 return (0);
             return (1);
-        }
-        if (t2 == STRING && (t1 == SEMICOLON || t1 == LBRACE || t1 == RBRACE))//make a current string a directive
-        {
-            if (!(ft_compare_with_table((*it).value, it, flag_location_block)))
-                return (printError(BAD_DIRECTIVE));
         }
         it++;
     }
