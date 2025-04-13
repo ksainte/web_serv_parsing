@@ -130,8 +130,6 @@ int Tokenizer::ft_check_basic_syntax(void)
                 return (printError(BAD_SEMICOLONS));
             if ((t1 == SEMICOLON && t2 == LBRACE) || ((t1 == RBRACE || t1 == LBRACE) && t2 == SEMICOLON))
                 return (printError(BAD_SEMICOLONS));
-            // if (t1 == LOCATION && t2 != STRING)
-            //     return (printError(BAD_LOCATION));
         }
         std::cout << "\nnext token:\n";
         it++;
@@ -353,9 +351,9 @@ int Tokenizer::ft_check_directives(std::list<t_node>::iterator &it)
             t2_value = (*it).value;
             it--;//sur la location
             (*it).value = t2_value;
-            std::cout << "Type :" << (*it).type << " Value :" << (*it).value;
+            std::cout << "Previous Type :" << (*it).type << " has New Value :" << (*it).value << "\n";
             it++;//back on the string
-            (*it).type = INVALID;//make this string invalid!
+            (*it).type = INVALID;//make this string invalid! for later iteration!
             flag_location_block = 1;
         }
         if (flag_location_block == 1 && t2 == LBRACE)
