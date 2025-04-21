@@ -30,6 +30,10 @@ int Tokenizer::printError(int err)
         std::cerr << "\nSyntax Error: This Directive must as least hold ONE STRING!\n";
     if (err == LOCATION_STRUCT)
         std::cerr << "\nSyntax Error: A Location can only be followed by One String!!\n";
+    if (err == INVALID_METHOD)
+        std::cerr << "\nSyntax Error: The allowed methods are GET, POST, and DELETE!\n";
+    if (err == DBL_METHOD)
+        std::cerr << "\nSyntax Error: There is a doublure in the type of methods!\n";
     return (0);
 }
 
@@ -81,7 +85,6 @@ void Tokenizer::ft_push_token(std::string s1)
         _tokens_list.push_back(t_node(type, value));
     else
         _tokens_list.push_back(t_node(type, value));
-
 }
 
 int ft_check_brackets(t_type type, int &left_brackets)
@@ -212,9 +215,16 @@ int Tokenizer::ft_valid_values_after_directive(std::list<t_node>::iterator &it, 
 {
     const std::string one_string[7] = {"listen", "host", "port", "client_max_body_size", "root", "autoindex", "cgi_pass"};
     const std::string two_strings[1] = {"cgi_params"};
+    const std::string valid_methods[3] = {"GET", "POST", "DELETE"};
     int i;
     int string_number;
+    int get_flag;
+    int post_flag;
+    int delete_flag;
 
+    get_flag = 0;
+    post_flag = 0;
+    delete_flag = 0;
     i = 0;
     string_number = 0;
     while (i < 7)
@@ -257,6 +267,26 @@ int Tokenizer::ft_valid_values_after_directive(std::list<t_node>::iterator &it, 
             return (1);
         }
         i++;
+    }
+    if (t1_value == "method")
+    {
+        while ((*it).type != SEMICOLON)
+        {
+            if ((*it).value == "GET")
+                get_flag += 1;
+            else if ((*it).value == "POST")
+                post_flag += 1;
+            else if ((*it).value == "DELETE")
+                delete_flag += 1;
+            else
+                return (printError(INVALID_METHOD));//what is between directive and semicolon is not a string
+            it++;
+        }
+        if (get_flag + post_flag + delete_flag == 0)
+            return (printError(NO_STRING));
+        if ((get_flag > 1 || post_flag > 1 || delete_flag > 1))
+            return (printError(DBL_METHOD));
+        return (1);
     }
     while ((*it).type != SEMICOLON)
     {

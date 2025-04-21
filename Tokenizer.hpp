@@ -20,6 +20,9 @@
 #define ONLY_TWO 13
 #define NO_STRING 14
 #define LOCATION_STRUCT 15
+#define INVALID_METHOD 16
+#define DBL_METHOD 17
+
 
 typedef enum s_token_type
 {
